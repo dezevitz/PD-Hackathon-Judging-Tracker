@@ -9,10 +9,6 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 
 
@@ -20,11 +16,22 @@ import androidx.compose.ui.tooling.preview.Preview
 fun HomeScreen(homeViewModel: HomeViewModel) {
     val numProjects = homeViewModel.numProjects.collectAsState()
     val numJudges = homeViewModel.numJudges.collectAsState()
+    val numPassThroughs = homeViewModel.numPassThroughs.collectAsState()
+    val lengthEvent = homeViewModel.lengthEvent.collectAsState()
+    val numProjectsPerJudge = homeViewModel.numProjectsPerJudge.collectAsState()
+    val timePerProject = homeViewModel.timePerProject.collectAsState()
     HomeContent(
         numProjects = numProjects.value,
         onNumProjectsChanged = { homeViewModel.updateNumProjects(it) },
         numJudges = numJudges.value,
-        onNumJudgesChanged = { homeViewModel.updateNumJudges(it) }
+        onNumJudgesChanged = { homeViewModel.updateNumJudges(it) },
+        numPassThroughs = numPassThroughs.value,
+        onNumPassThroughsChanged = { homeViewModel.updateNumPassThroughs(it) },
+        lengthEvent = lengthEvent.value,
+        onLengthEventChanged = { homeViewModel.updateLengthEvent(it) },
+        calculateValues = { homeViewModel.calculateValues() },
+        numProjectsPerJudge = numProjectsPerJudge.value.toString(),
+        timePerProject = timePerProject.value.toString()
     )
 }
 
@@ -33,36 +40,34 @@ fun HomeContent(
     numProjects: String,
     onNumProjectsChanged: (String) -> Unit,
     numJudges: String,
-    onNumJudgesChanged: (String) -> Unit
+    onNumJudgesChanged: (String) -> Unit,
+    numPassThroughs: String,
+    onNumPassThroughsChanged: (String) -> Unit,
+    lengthEvent: String,
+    onLengthEventChanged: (String) -> Unit,
+    calculateValues: () -> Unit,
+    numProjectsPerJudge: String,
+    timePerProject: String
 ) {
-    Surface() {
+    Surface {
         Column {
-            var numPassThroughs by remember { mutableStateOf("") }
-            var lengthEvent by remember { mutableStateOf("") }
-            var numProjectsPerJudge by remember { mutableStateOf(0) }
-            var timePerProject by remember { mutableStateOf(0) }
-
             Row {
                 Text(text = "Number of Projects: ")
                 BasicTextField(value = numProjects, onValueChange = onNumProjectsChanged)
             }
             Row {
                 Text(text = "Number of Judges: ")
-                BasicTextField(value = numJudges, onValueChange = { onNumJudgesChanged })
+                BasicTextField(value = numJudges, onValueChange = onNumJudgesChanged)
             }
             Row {
                 Text(text = "How Many Times Should Each Project Be Seen? ")
-                BasicTextField(value = numPassThroughs, onValueChange = { numPassThroughs = it })
+                BasicTextField(value = numPassThroughs, onValueChange = onNumPassThroughsChanged)
             }
             Row {
                 Text(text = "How Long Is Judging?(Minutes) ")
-                BasicTextField(value = lengthEvent, onValueChange = { lengthEvent = it })
+                BasicTextField(value = lengthEvent, onValueChange = onLengthEventChanged)
             }
-            Button(onClick = {
-                numProjectsPerJudge =
-                    (numProjects.toInt() * numPassThroughs.toInt()) / numJudges.toInt()
-                timePerProject = lengthEvent.toInt() / numProjectsPerJudge
-            }) {
+            Button(onClick = { calculateValues() }) {
                 Text(text = "Calculate")
             }
             Text(text = "Number of Projects Per Judge: $numProjectsPerJudge")
@@ -76,9 +81,16 @@ fun HomeContent(
 @Composable
 fun HomeContentPreview() {
     HomeContent(
-        numProjects = "10",
+        numProjects = "100",
         onNumProjectsChanged = {},
-        numJudges = "2",
-        onNumJudgesChanged = {}
+        numJudges = "10",
+        onNumJudgesChanged = {},
+        numPassThroughs = "2",
+        onNumPassThroughsChanged = {},
+        lengthEvent = "180",
+        onLengthEventChanged = {},
+        calculateValues = {},
+        numProjectsPerJudge = "20",
+        timePerProject = "9"
     )
 }
